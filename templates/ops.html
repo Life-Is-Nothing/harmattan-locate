@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HARMATTAN-LOCATE — Opérateur</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  window.HLOC_TOKEN = {{ token|tojson }};
+  window.HLOC_VERSION = {{ version|tojson }};
+  window.HLOC_PUBLIC = {{ public_base|tojson }};
+  window.HLOC_LEGAL = {{ legal|tojson }};
+</script>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><span class="dot">◎</span> HARMATTAN-LOCATE <small>Consent Location · v{{ version }}</small></div>
+    <div class="pills">
+      <span class="pill" id="st-links">0 liens</span>
+      <span class="pill" id="st-events">0 events</span>
+      <span class="pill" id="st-gps">0 GPS</span>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <div class="nav active" data-v="dash">Dashboard</div>
+    <div class="nav" data-v="create">Créer un lien</div>
+    <div class="nav" data-v="links">Mes liens</div>
+    <div class="nav" data-v="events">Événements</div>
+    <div class="nav" data-v="help">Aide & légal</div>
+  </aside>
+
+  <main class="main">
+    <div id="jobtoast"></div>
+
+    <section class="view active" id="v-dash">
+      <h1>Dashboard</h1>
+      <p class="sub">Partage de position <b>avec consentement explicite</b> uniquement.</p>
+      <div class="stat-grid">
+        <div class="stat"><div class="n" id="d-links">0</div><div class="l">Liens</div></div>
+        <div class="stat"><div class="n" id="d-active">0</div><div class="l">Actifs</div></div>
+        <div class="stat"><div class="n" id="d-events">0</div><div class="l">Événements</div></div>
+        <div class="stat"><div class="n" id="d-gps">0</div><div class="l">GPS partagés</div></div>
+      </div>
+      <div class="panel">
+        <h2>Carte des partages</h2>
+        <div id="map" style="height:280px;border-radius:8px;border:1px solid var(--border)"></div>
+        <p class="sub" style="margin-top:8px">Cyan = GPS · Orange = géo IP approx.</p>
+      </div>
+      <div class="panel">
+        <h2>Derniers événements</h2>
+        <div id="dash-events" class="empty">Aucun événement pour l’instant.</div>
+      </div>
+    </section>
+
+    <section class="view" id="v-create">
+      <h1>Créer un lien de partage</h1>
+      <p class="sub">Le message affiché à la personne doit être honnête. Les leurres sont bloqués.</p>
+      <div class="panel form">
+        <label>Titre (affiché en grand)</label>
+        <input id="c-title" type="text" placeholder="ex: Test lab localisation — consentement">
+        <label>Nom de l’opérateur (qui reçoit les données)</label>
+        <input id="c-op" type="text" placeholder="ex: Mohamed / NACF Lab">
+        <label>Message d’explication (honnête)</label>
+        <textarea id="c-msg" rows="4" placeholder="Explique clairement pourquoi tu demandes la position…"></textarea>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="c-gps" checked> Demander le GPS navigateur (permission OS)</label>
+        </div>
+        <div class="row">
+          <div>
+            <label>Max participations (0 = illimité)</label>
+            <input id="c-max" type="number" value="0" min="0">
+          </div>
+          <div>
+            <label>Expire dans (heures, 0 = jamais)</label>
+            <input id="c-exp" type="number" value="48" min="0">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Mot de passe lien (optionnel)</label>
+            <input id="c-pass" type="text" placeholder="vide = aucun">
+          </div>
+          <div>
+            <label>Thème</label>
+            <select id="c-theme">
+              <option value="default">Nuit (défaut)</option>
+              <option value="light">Clair</option>
+              <option value="lab">Lab vert</option>
+            </select>
+          </div>
+        </div>
+        <label>Redirect après partage (optionnel, URL https)</label>
+        <input id="c-redir" type="text" placeholder="https://…">
+        <label>Notes internes (non visibles)</label>
+        <input id="c-notes" type="text" placeholder="ex: test avec Alice">
+        <button id="btn-create">Générer le lien</button>
+        <div id="create-out" class="out hidden"></div>
+      </div>
+    </section>
+
+    <section class="view" id="v-links">
+      <h1>Mes liens</h1>
+      <div class="panel" id="links-box">Chargement…</div>
+    </section>
+
+    <section class="view" id="v-events">
+      <div class="head-row">
+        <div>
+          <h1>Événements</h1>
+          <p class="sub">Vues, partages, GPS, IP approx.</p>
+        </div>
+        <div class="row">
+          <button class="secondary" id="btn-export-csv">Export CSV</button>
+          <button class="secondary" id="btn-export-json">Export JSON</button>
+          <button class="secondary" id="btn-refresh-ev">Rafraîchir</button>
+        </div>
+      </div>
+      <div class="panel" id="events-box">Chargement…</div>
+    </section>
+
+    <section class="view" id="v-help">
+      <h1>Aide & cadre légal</h1>
+      <div class="panel">
+        <div class="legal" id="legal-box"></div>
+        <h2>Fonctionnalités</h2>
+        <ul>
+          <li>Liens uniques avec expiration & quota de clics</li>
+          <li>Mot de passe optionnel sur le lien</li>
+          <li>Consentement texte obligatoire (case à cocher)</li>
+          <li>GPS navigateur uniquement si l’utilisateur accepte la popup OS</li>
+          <li>Géolocalisation IP approximative (ville/pays)</li>
+          <li>User-Agent, device, timezone, écran</li>
+          <li>Carte OpenStreetMap (lien)</li>
+          <li>Export CSV / JSON</li>
+          <li>Activation / désactivation des liens</li>
+          <li>Blocage des titres/messages de type arnaque</li>
+        </ul>
+        <h2>Pour un accès distant (lab)</h2>
+        <pre class="code">export HLOC_PUBLIC_BASE=https://ton-tunnel.example
+export HLOC_HOST=0.0.0.0
+./locate.sh</pre>
+        <p class="sub">Utilise un tunnel (cloudflared / ngrok) si le participant n’est pas sur le même réseau.</p>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="{{ url_for('static', filename='js/ops.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="{{ link.theme or 'default' }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ link.title }} — Partage volontaire</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/share.css') }}">
+</head>
+<body>
+<div class="wrap">
+  <div class="badge">◎ PARTAGE VOLONTAIRE · HARMATTAN-LOCATE</div>
+  <h1 id="title">{{ link.title }}</h1>
+  <p class="op">Opérateur : <strong>{{ link.operator_name or '—' }}</strong></p>
+  <p class="msg" id="msg">{{ link.message }}</p>
+
+  <div class="warn">
+    Cette page <b>n’est pas</b> une offre d’argent, un jeu, ni un service caché.
+    Elle existe uniquement pour un <b>test / démonstration avec ton accord</b>.
+    Tu peux fermer l’onglet à tout moment.
+  </div>
+
+  {% if needs_password %}
+  <div class="card" id="pw-box">
+    <label>Ce lien est protégé — mot de passe fourni par l’opérateur</label>
+    <input type="password" id="pw" placeholder="Mot de passe">
+    <button type="button" id="btn-unlock">Déverrouiller</button>
+  </div>
+  {% endif %}
+
+  <div class="card" id="consent-box" {% if needs_password %}style="display:none"{% endif %}>
+    <h2>Ce qui sera partagé si tu acceptes</h2>
+    <ul>
+      <li>Adresse IP et localisation <b>approximative</b> (ville / pays)</li>
+      <li>Type d’appareil, navigateur, fuseau horaire</li>
+      {% if link.require_gps %}
+      <li>Position GPS plus précise <b>uniquement</b> si tu autorises la popup de ton téléphone/PC</li>
+      {% endif %}
+    </ul>
+
+    <label class="chk">
+      <input type="checkbox" id="c-text">
+      <span>Je comprends qu’il s’agit d’un partage volontaire avec <b>{{ link.operator_name or 'l’opérateur' }}</b>, et j’accepte d’envoyer ces informations.</span>
+    </label>
+
+    {% if link.require_gps %}
+    <label class="chk">
+      <input type="checkbox" id="c-gps">
+      <span>Je souhaite aussi partager ma position GPS (le système me demandera la permission).</span>
+    </label>
+    {% endif %}
+
+    <label>Note optionnelle pour l’opérateur</label>
+    <input type="text" id="note" placeholder="ex: c’est Alice, test lab">
+
+    <button type="button" id="btn-share" disabled>Partager volontairement</button>
+    <button type="button" class="ghost" id="btn-refuse">Refuser et quitter</button>
+    <p class="status" id="status"></p>
+  </div>
+
+  <div class="card hidden" id="done-box">
+    <h2>✓ Merci</h2>
+    <p id="done-msg">Ton partage a été enregistré.</p>
+    <p class="fine" id="done-detail"></p>
+  </div>
+
+  <footer>HARMATTAN-LOCATE v{{ version }} · Consentement requis · Pas de leurre</footer>
+</div>
+<script>
+  window.SHARE_CODE = {{ link.code|tojson }};
+  window.REQUIRE_GPS = {{ link.require_gps|tojson }};
+  window.NEEDS_PW = {{ needs_password|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/share.js') }}"></script>
+</body>
+</html>
