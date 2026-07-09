@@ -1,44 +1,67 @@
-# HARMATTAN-LOCATE — Consent-Based Location Sharing
+# ◎ HARMATTAN-LOCATE — Consent-Based Location Sharing
 
-Plateforme de **partage volontaire de position** via lien.
+[![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Ethics](https://img.shields.io/badge/Consent-Required-brightgreen)](#ethics)
 
-> ⚠ La page publique affiche clairement le consentement.  
-> Les titres/messages de type arnaque (« argent gratuit », etc.) sont **bloqués**.  
-> Usage trompeur ou sans consentement = **interdit**.
+**Ethical location-sharing platform** for security labs and authorized social-engineering exercises.  
+Share links require **explicit consent** on a clear page. Deceptive “free money” lures are blocked.
 
-## Lancer
+> Part of the [HARMATTAN Suite](https://github.com/Life-Is-Nothing/harmattan-suite)
+
+---
+
+## Features
+
+- Unique share links (`/s/<code>`) with expiry & max uses  
+- Optional password protection  
+- Mandatory consent checkbox  
+- Browser GPS only if the user accepts the OS permission prompt  
+- Approximate IP geolocation (city/country)  
+- Device / browser / timezone metadata  
+- Operator dashboard: events, **Leaflet map**, **QR codes**  
+- CSV / JSON export  
+- Rate limiting  
+- Optional alerts via [harmattan-hub](https://github.com/Life-Is-Nothing/harmattan-hub)  
+
+---
+
+## Quick start
 
 ```bash
-cd ~/harmattan-locate
-chmod +x locate.sh
+git clone https://github.com/Life-Is-Nothing/harmattan-locate.git
+cd harmattan-locate
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+pip install qrcode pillow   # optional QR
 ./locate.sh
 ```
 
-→ Dashboard : **http://127.0.0.1:8095/ops**  
-→ Liens publics : `http://127.0.0.1:8095/s/<code>`
+- Dashboard: **http://127.0.0.1:8095/ops**  
+- Public links: `http://127.0.0.1:8095/s/<code>`
 
-### Accès distant (participant hors LAN)
+For remote lab participants, set a public base URL:
 
 ```bash
 export HLOC_HOST=0.0.0.0
-export HLOC_PUBLIC_BASE=https://ton-tunnel.example
+export HLOC_PUBLIC_BASE=https://your-tunnel.example
 ./locate.sh
 ```
 
-## Fonctionnalités
+---
 
-- Création de liens (expiration, max clics, mot de passe, thèmes)
-- Page de consentement honnête + cases à cocher
-- GPS navigateur **uniquement** si popup OS acceptée
-- Géoloc IP approximative (ville/pays)
-- Device / browser / timezone / écran
-- Dashboard events + cartes OpenStreetMap
-- Export CSV / JSON
-- On/off + suppression des liens
-- Token API opérateur
+## Ethics
 
-## Ce qui n’est PAS inclus
+**Informed consent only.**  
+Do not use deceptive pages or track people without agreement. Unauthorized tracking is illegal.
 
-- Sites leurres (faux gains, faux comptes)
-- Tracking invisible sans case de consentement
-- Contournement de la permission GPS du navigateur
+---
+
+## Author
+
+**Mohamed Adoungouss Ibrahim** · NACF · Niger  
+[@Life-Is-Nothing](https://github.com/Life-Is-Nothing)
+
+## License
+
+MIT — see [LICENSE](LICENSE)
